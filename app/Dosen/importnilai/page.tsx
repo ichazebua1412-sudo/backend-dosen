@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import Link from "next/link";
+import React from "react";
+import Image from "next/image";
+import logoImg from "@/public/image/logo.png";
+import { useMemo, useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
-import { LayoutDashboard, FolderKanban, UserPlus, FileSpreadsheet, FileText, BarChart3, Sparkles, Printer, User, Shield, HelpCircle, ExternalLink, ChevronRight, Download, History, FileCode, Check, CheckCircle2, Lock, LockKeyhole, Upload, Info, RefreshCw, X} from 'lucide-react';
+import { LayoutDashboard, BookOpen, ShieldCheck, FileEdit, Layers, UserPlus, FileSpreadsheet, BarChart3, Sparkles, Printer, User, Shield, HelpCircle, ExternalLink, ChevronRight, Download, History, FileCode, Check, CheckCircle2, Lock, LockKeyhole, Upload,  RefreshCw } from 'lucide-react';
 
 
-/* =========================================================
-   DATA MOCKUP
-========================================================= */
+/* DATA MOCKUP */
 
 const INITIAL_PREVIEW_DATA = [
   {
@@ -317,10 +319,8 @@ export default function ImportNilaiExcel() {
   ======================================================= */
 
   return (
-    <div className="flex h-screen bg-[#F8FAFC] font-sans text-slate-800 antialiased overflow-hidden">
-      {/* =====================================================
-          TOAST
-      ===================================================== */}
+    <div className="flex min-h-screen bg-[#F8FAFC] text-slate-800 font-sans text-xs">
+      {/* TOAST */}
 
       {showToast && (
         <div className="fixed top-5 right-5 z-50 flex items-center gap-2 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl text-xs border border-slate-700 animate-bounce">
@@ -330,18 +330,22 @@ export default function ImportNilaiExcel() {
         </div>
       )}
 
-      {/* =====================================================
-          SIDEBAR
-      ===================================================== */}
+      {/*  SIDEBAR   */}
 
-      <aside className="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0 justify-between">
+      <aside className="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 p-4 sticky top-0 h-screen overflow-y-auto">
         <div>
           {/* BRAND */}
 
-          <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+          <div className="flex items-center justify-between mb-6 px-1">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold shadow-md shadow-blue-500/20">
-                G
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden shrink-0">
+                <Image
+                  src={logoImg}
+                  alt="Logo Gradia"
+                  width={36}
+                  height={36}
+                  className="w-full h-full object-contain"
+                />
               </div>
 
               <div>
@@ -360,174 +364,135 @@ export default function ImportNilaiExcel() {
             </span>
           </div>
 
-          {/* NAVIGATION */}
-
-          <div className="p-4 space-y-6 overflow-y-auto max-h-[calc(100vh-160px)]">
-            {/* UTAMA */}
-
+          {/* Navigation Menu */}
+          <nav className="space-y-5">
+            {/* Group 1: UTAMA */}
             <div>
-              <p className="text-[11px] font-bold text-slate-400 tracking-wider uppercase mb-2 px-3">
+              <p className="px-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
                 UTAMA
               </p>
-
-              <nav className="space-y-1">
-                <button
-                  type="button"
-                  onClick={handleDashboard}
-                  className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 transition text-left"
+              <div className="space-y-1">
+                <a
+                  href="/Dosen/dashboard"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
                 >
-                  <LayoutDashboard className="w-4 h-4 text-slate-400" />
-                  Dashboard
-                </button>
-              </nav>
-            </div>
-
-            {/* PERKULIAHAN */}
-
-            <div>
-              <p className="text-[11px] font-bold text-slate-400 tracking-wider uppercase mb-2 px-3">
-                PERKULIAHAN & MAHASISWA
-              </p>
-
-              <nav className="space-y-1">
-                <button
-                  type="button"
-                  onClick={handleClassManagement}
-                  className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 transition text-left"
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span>Dashboard</span>
+                </a>
+                <a
+                  href="/Dosen/manajemenkelas"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
                 >
-                  <FolderKanban className="w-4 h-4 text-slate-400" />
-                  Manajemen Data Kelas
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleAddClass}
-                  className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 transition text-left"
+                  <Layers className="w-4 h-4 text-slate-400" />
+                  <span>Manajemen Data Kelas</span>
+                </a>
+                <a
+                  href="/Dosen/tambahkelas"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
                 >
                   <UserPlus className="w-4 h-4 text-slate-400" />
-                  Tambah Kelas & Mhs
-                </button>
-              </nav>
+                  <span>Tambah Kelas & Mahasiswa</span>
+                </a>
+              </div>
             </div>
 
-            {/* PENILAIAN */}
-
+            {/* Group 2: PENILAIAN & EVALUASI */}
             <div>
-              <p className="text-[11px] font-bold text-slate-400 tracking-wider uppercase mb-2 px-3">
-                PENILAIAN & REKAPITULASI
+              <p className="px-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                PENILAIAN & EVALUASI
               </p>
-
-              <nav className="space-y-1">
-                <button
-                  type="button"
-                  onClick={handleInputNilai}
-                  className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 transition text-left"
+              <div className="space-y-1">
+                <a
+                  href="/Dosen/inputnilai"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
+                >
+                  <FileEdit className="w-4 h-4 text-slate-400" />
+                  <span>Input Rekap Nilai</span>
+                </a>
+                <a
+                  href="/Dosen/importnilai"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-blue-50 text-blue-600 font-medium transition-all"
                 >
                   <FileSpreadsheet className="w-4 h-4 text-slate-400" />
-                  Input Rekap Nilai
-                </button>
-
-                <button
-                  type="button"
-                  className="w-full flex items-center gap-3 px-3 py-2 bg-blue-50 text-blue-700 font-semibold rounded-lg text-sm transition border-r-4 border-blue-600 text-left"
-                >
-                  <FileText className="w-4 h-4 text-blue-600" />
-                  Import Nilai Excel
-                </button>
-              </nav>
+                  <span>Import Nilai Excel</span>
+                </a>
+              </div>
             </div>
 
-            {/* AI & LAPORAN */}
-
+            {/* Group 3: KECERDASAN BUATAN & LAPORAN */}
             <div>
-              <p className="text-[11px] font-bold text-slate-400 tracking-wider uppercase mb-2 px-3">
+              <p 
+              className="px-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
                 KECERDASAN BUATAN & LAPORAN
               </p>
-
-              <nav className="space-y-1">
-                <button
-                  type="button"
-                  onClick={handleAnalytic}
-                  className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 transition text-left"
+              <div className="space-y-1">
+                <a
+                  href="/Dosen/analitikAI"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
                 >
                   <BarChart3 className="w-4 h-4 text-slate-400" />
-                  Analitik & AI Feedback
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleGenerateAI}
-                  className="w-full flex items-center justify-between px-3 py-2 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 transition text-left"
+                  <span>Analitik & AI Feedback</span>
+                </a>
+                <a
+                  href="/Dosen/generateAI"
+                  className="flex items-center justify-between px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2.5">
                     <Sparkles className="w-4 h-4 text-slate-400" />
 
                     <span>Generate AI Feedback</span>
                   </div>
-
-                  <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.2 rounded font-semibold">
+                  <span className="text-[9px] bg-purple-100 text-purple-600 font-bold px-1.5 py-0.2 rounded-full">
                     Baru
                   </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleReport}
-                  className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 transition text-left"
+                </a>
+                <a
+                  href="/Dosen/cetakPDF"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
                 >
                   <Printer className="w-4 h-4 text-slate-400" />
-                  Cetak PDF & Laporan
-                </button>
-              </nav>
+                  <span>Cetak PDF & Laporan</span>
+                </a>
+              </div>
             </div>
 
-            {/* AKUN */}
-
+            {/* Group 4: PENGATURAN AKUN */}
             <div>
-              <p className="text-[11px] font-bold text-slate-400 tracking-wider uppercase mb-2 px-3">
+              <p className="px-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
                 PENGATURAN AKUN
               </p>
-
-              <nav className="space-y-1">
-                <button
-                  type="button"
-                  onClick={handleProfile}
-                  className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 transition text-left"
+              <div className="space-y-1">
+                <a
+                  href="/Dosen/profil"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
                 >
                   <User className="w-4 h-4 text-slate-400" />
-                  Kelola Profil
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleSecurity}
-                  className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 transition text-left"
+                  <span>Kelola Profil</span>
+                </a>
+                <a
+                  href="/Dosen/keamanan"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
                 >
-                  <Shield className="w-4 h-4 text-slate-400" />
-                  Keamanan & Akun
-                </button>
-              </nav>
+                  <ShieldCheck className="w-4 h-4 text-slate-400" />
+                  <span>Keamanan & Akun</span>
+                </a>
+              </div>
             </div>
-          </div>
+          </nav>
         </div>
 
-        {/* FOOTER SIDEBAR */}
-
-        <div className="p-4 border-t border-slate-100">
-          <button
-            type="button"
-            onClick={() =>
-              notify("Membuka Panduan Dosen v1.0...")
-            }
-            className="w-full flex items-center justify-between text-xs text-slate-500 hover:text-slate-800 transition"
+        {/* Sidebar Footer */}
+        <div className="mt-6 pt-4 border-t border-slate-100">
+          <a
+            href="#"
+            className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-indigo-50/50 text-indigo-700 hover:bg-indigo-50 transition-all"
           >
-            <span className="flex items-center gap-2">
-              <HelpCircle className="w-4 h-4 text-slate-400" />
-              Panduan Dosen v1.0
-            </span>
-
-            <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
-          </button>
+            <div className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-indigo-600" />
+              <span className="font-semibold">Panduan Dosen</span>
+            </div>
+            <span className="text-[10px] text-indigo-400 font-mono">v1.0</span>
+          </a>
         </div>
       </aside>
 

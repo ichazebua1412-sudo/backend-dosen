@@ -1,13 +1,35 @@
 "use client";
 
-import React, { useEffect, useMemo, useState, type FormEvent, type ReactNode,} from "react";
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode,} from "react";
+import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { GraduationCap, LayoutDashboard, BookOpen, UserPlus, ClipboardCheck, FileSpreadsheet, BarChart3, Sparkles, FileText, User, ShieldCheck, ExternalLink, Search, ChevronDown, Download, Plus, Users, CheckCircle2, Clock, AlertTriangle, Database, Wifi, ChevronLeft, ChevronRight, X, Menu, Check,} from "lucide-react";
+import React from "react";
+import { usePathname } from "next/navigation";
+import { GraduationCap, LayoutDashboard, BookOpen, UserPlus, ClipboardCheck, FileSpreadsheet, BarChart3, Sparkles, FileText, User, ShieldCheck, ExternalLink, Search, ChevronDown, Download, Plus, Users, CheckCircle2, Clock, AlertTriangle, Database, Wifi, ChevronLeft, ChevronRight, X, Menu, Check, Layers, FileEdit, Printer } from "lucide-react";
+import logoImg from "@/public/image/logo.png";
 
 
-/* =========================================================
-   TYPE DATA KELAS
-========================================================= */
+
+
+    <main className="min-h-screen bg-slate-50 p-8">
+      <div className="mx-auto max-w-5xl rounded-2xl border border-slate-200 bg-white p-8">
+        <h1 className="text-2xl font-bold text-slate-900">
+          Manajemen Data Kelas
+        </h1>
+
+        <p className="mt-3 text-slate-600">
+          Selamat datang di halaman Manajemen Data Kelas Gradia.
+        </p>
+
+        <div className="mt-6 rounded-xl bg-indigo-50 p-4 text-indigo-700">
+          Halaman berhasil dimuat. Routing Next.js berfungsi.
+        </div>
+      </div>
+    </main>
+
+
+/* TYPE DATA KELAS */
 
 type ClassData = {
   id: string;
@@ -180,22 +202,19 @@ const INITIAL_CLASSES: ClassData[] = [
   },
 ];
 
-/* =========================================================
-   KONSTANTA PAGINATION
-========================================================= */
+/*   KONSTANTA PAGINATION   */
 
 const ITEMS_PER_PAGE = 4;
 
-/* =========================================================
-   MAIN APP
-========================================================= */
+/*   MAIN APP */
 
-export default function App() {
+export default function DataKelasPage() {
+
   const router = useRouter();
 
-  /* =========================================================
-     STATE
-  ========================================================= */
+  /*      STATE    */
+
+  const pathname = usePathname();
 
   const [activeTab, setActiveTab] = useState<string>("Semua");
 
@@ -216,9 +235,7 @@ export default function App() {
   const [currentPage, setCurrentPage] =
     useState<number>(1);
 
-  /* =========================================================
-     FORM STATE TAMBAH KELAS
-  ========================================================= */
+  /* FORM STATE TAMBAH KELAS */
 
   const [formData, setFormData] =
     useState<ClassFormData>({
@@ -423,9 +440,7 @@ export default function App() {
     });
   };
 
-  /* =========================================================
-     EXPORT RINGKASAN
-  ========================================================= */
+  /* EXPORT RINGKASAN */
 
   const handleExportSummary = (): void => {
     /*
@@ -434,208 +449,149 @@ export default function App() {
     */
     navigate("/cetak-laporan");
   };
-
-  /* =========================================================
-     RENDER
-  ========================================================= */
+  
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-800 font-sans flex flex-col md:flex-row antialiased selection:bg-indigo-500 selection:text-white">
-
-      {/* =====================================================
-          MOBILE SIDEBAR OVERLAY
-      ===================================================== */}
-
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 md:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
-      {/* =====================================================
-          SIDEBAR
-      ===================================================== */}
-
-      <aside
-        className={`fixed md:sticky top-0 left-0 h-screen w-64 bg-white border-r border-slate-200/80 z-50 flex flex-col transition-transform duration-300 ease-in-out ${
-          isSidebarOpen
-            ? "translate-x-0"
-            : "-translate-x-full md:translate-x-0"
-        }`}
-      >
-
-        {/* Brand */}
-
-        <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-
-          <div className="flex items-center gap-2.5">
-
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-500 text-white flex items-center justify-center shadow-md shadow-indigo-200">
-              <GraduationCap className="w-5 h-5" />
-            </div>
-
-            <div>
-
-              <div className="flex items-center gap-1.5">
-
-                <span className="font-bold text-slate-900 text-lg leading-none">
-                  Gradia
-                </span>
-
-                <span className="text-[10px] font-semibold bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded border border-indigo-100">
-                  v2.4
-                </span>
-
+    <div className="flex min-h-screen bg-[#F8FAFC] text-slate-800 font-sans text-xs">
+      <aside className="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 p-4 sticky top-0 h-screen overflow-y-auto">
+        <div>
+          {/* Logo Brand */}
+          <div className="flex items-center justify-between mb-6 px-1">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden shrink-0">
+                <Image
+                  src={logoImg}
+                  alt="Logo Gradia"
+                  width={36}
+                  height={36}
+                  className="w-full h-full object-contain"
+                />
               </div>
-
-              <span className="text-xs text-slate-400 font-medium tracking-wide">
-                Portal Dosen
-              </span>
-
+              <div>
+                <h1 className="font-bold text-sm text-slate-900 leading-none">Gradia</h1>
+                <p className="text-[10px] text-slate-400 mt-0.5">Portal Dosen</p>
+              </div>
             </div>
+            <span className="text-[10px] bg-indigo-50 text-indigo-600 font-semibold px-1.5 py-0.5 rounded">
+              v2.4
+            </span>
           </div>
+          
 
-          <button
-            type="button"
-            onClick={() => setIsSidebarOpen(false)}
-            className="md:hidden text-slate-400 hover:text-slate-600 p-1"
-            aria-label="Tutup sidebar"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          {/* Navigation Menu */}
+          <nav className="space-y-5">
+            {/* Group 1: UTAMA */}
+            <div>
+              <p className="px-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                UTAMA
+              </p>
+              <div className="space-y-1">
+                <a
+                  href="/Dosen/dashboard"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span>Dashboard</span>
+                </a>
+                <a
+                  href="/Dosen/manajemenkelas"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-blue-50 text-blue-600 font-medium transition-all"
+                >
+                  <Layers className="w-4 h-4 text-slate-400" />
+                  <span>Manajemen Data Kelas</span>
+                </a>
+                <a
+                  href="/Dosen/tambahkelas"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
+                >
+                  <UserPlus className="w-4 h-4 text-slate-400" />
+                  <span>Tambah Kelas & Mahasiswa</span>
+                </a>
+              </div>
+            </div>
 
-        </div>
+            {/* Group 2: PENILAIAN & EVALUASI */}
+            <div>
+              <p className="px-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                PENILAIAN & EVALUASI
+              </p>
+              <div className="space-y-1">
+                <a
+                  href="/Dosen/inputnilai"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
+                >
+                  <FileEdit className="w-4 h-4 text-slate-400" />
+                  <span>Input Rekap Nilai</span>
+                </a>
+                <a
+                  href="/Dosen/importnilai"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
+                >
+                  <FileSpreadsheet className="w-4 h-4 text-slate-400" />
+                  <span>Import Nilai Excel</span>
+                </a>
+              </div>
+            </div>
 
-        {/* Sidebar Navigation */}
+            {/* Group 3: KECERDASAN BUATAN & LAPORAN */}
+            <div>
+              <p 
+              className="px-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                KECERDASAN BUATAN & LAPORAN
+              </p>
+              <div className="space-y-1">
+                <a
+                  href="/Dosen/analitikAI"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
+                >
+                  <BarChart3 className="w-4 h-4 text-slate-400" />
+                  <span>Analitik & AI Feedback</span>
+                </a>
+                <a
+                  href="/Dosen/generateAI"
+                  className="flex items-center justify-between px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Sparkles className="w-4 h-4 text-slate-400" />
+                    <span>Generate AI Feedback</span>
+                  </div>
+                  <span className="text-[9px] bg-purple-100 text-purple-600 font-bold px-1.5 py-0.2 rounded-full">
+                    Baru
+                  </span>
+                </a>
+                <a
+                  href="/Dosen/cetakPDF"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
+                >
+                  <Printer className="w-4 h-4 text-slate-400" />
+                  <span>Cetak PDF & Laporan</span>
+                </a>
+              </div>
+            </div>
 
-        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6 text-xs font-medium">
-
-          {/* UTAMA */}
-
-          <div>
-
-            <SectionTitle title="UTAMA" />
-
-            <NavItem
-              icon={
-                <LayoutDashboard className="w-4 h-4" />
-              }
-              label="Dashboard"
-              onClick={() => navigate("/dashboard")}
-            />
-
-          </div>
-
-          {/* PERKULIAHAN & MAHASISWA */}
-
-          <div>
-
-            <SectionTitle title="PERKULIAHAN & MAHASISWA" />
-
-            <NavItem
-              icon={
-                <BookOpen className="w-4 h-4" />
-              }
-              label="Manajemen Data Kelas"
-              active
-              onClick={() => navigate("/kelas")}
-            />
-
-            <NavItem
-              icon={
-                <UserPlus className="w-4 h-4" />
-              }
-              label="Tambah Kelas & Mhs"
-              onClick={() => {
-                setIsSidebarOpen(false);
-                setIsModalOpen(true);
-              }}
-            />
-
-          </div>
-
-          {/* PENILAIAN & REKAPITULASI */}
-
-          <div>
-
-            <SectionTitle title="PENILAIAN & REKAPITULASI" />
-
-            <NavItem
-              icon={
-                <ClipboardCheck className="w-4 h-4" />
-              }
-              label="Input Rekap Nilai"
-              onClick={() => navigate("/input-nilai")}
-            />
-
-            <NavItem
-              icon={
-                <FileSpreadsheet className="w-4 h-4" />
-              }
-              label="Import Nilai Excel"
-              onClick={() => navigate("/import-excel")}
-            />
-
-          </div>
-
-          {/* KECERDASAN BUATAN & LAPORAN */}
-
-          <div>
-
-            <SectionTitle title="KECERDASAN BUATAN & LAPORAN" />
-
-            <NavItem
-              icon={
-                <BarChart3 className="w-4 h-4" />
-              }
-              label="Analitik & AI Feedback"
-              onClick={() => navigate("/analitik-ai")}
-            />
-
-            <NavItem
-              icon={
-                <Sparkles className="w-4 h-4 text-purple-500" />
-              }
-              label="Generate AI Feedback"
-              badge="New"
-              onClick={() => navigate("/generate-ai")}
-            />
-
-            <NavItem
-              icon={
-                <FileText className="w-4 h-4" />
-              }
-              label="Cetak PDF & Laporan"
-              onClick={() => navigate("/cetak-laporan")}
-            />
-
-          </div>
-
-          {/* PENGATURAN AKUN */}
-
-          <div>
-
-            <SectionTitle title="PENGATURAN AKUN" />
-
-            <NavItem
-              icon={
-                <User className="w-4 h-4" />
-              }
-              label="Kelola Profil"
-              onClick={() => navigate("/kelola-profil")}
-            />
-
-            <NavItem
-              icon={
-                <ShieldCheck className="w-4 h-4" />
-              }
-              label="Keamanan & Akun"
-              onClick={() => navigate("/keamanan")}
-            />
-
-          </div>
-
+            {/* Group 4: PENGATURAN AKUN */}
+            <div>
+              <p className="px-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                PENGATURAN AKUN
+              </p>
+              <div className="space-y-1">
+                <a
+                  href="/Dosen/profil"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
+                >
+                  <User className="w-4 h-4 text-slate-400" />
+                  <span>Kelola Profil</span>
+                </a>
+                <a
+                  href="/Dosen/keamanan"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
+                >
+                  <ShieldCheck className="w-4 h-4 text-slate-400" />
+                  <span>Keamanan & Akun</span>
+                </a>
+              </div>
+            </div>
+          </nav>
         </div>
 
         {/* Sidebar Footer */}
@@ -671,6 +627,8 @@ export default function App() {
         </div>
 
       </aside>
+
+  
 
       {/* =====================================================
           MAIN
@@ -1555,7 +1513,7 @@ export default function App() {
 
     </div>
   );
-}
+
 
 /* =========================================================
    SECTION TITLE
@@ -1573,9 +1531,7 @@ function SectionTitle({
   );
 }
 
-/* =========================================================
-   NAV ITEM
-========================================================= */
+/* NAV ITEM */
 
 function NavItem({
   icon,
@@ -1979,7 +1935,8 @@ function ClassCard({
             {data.actionBtn}
           </button>
 
-        )}
+        )
+        }
 
         {/* OUTLINE ACTION */}
 
@@ -2000,4 +1957,4 @@ function ClassCard({
     </div>
   );
 }
-
+}

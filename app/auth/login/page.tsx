@@ -4,7 +4,7 @@ import React, {useState, type ChangeEvent, type FormEvent,} from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import logoImg from "@/public/image/logo.png";
-import ilutrasiImg from "@/public/image/ilustrasi.png";
+import ilutrasiImg from "@/public/image/login.png";
 
 
 
@@ -95,22 +95,7 @@ export default function LoginPage() {
                 Masuk / Login Dosen
               </button>
 
-              {/* REGISTER */}
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveTab("register");
-                  router.push("/auth/Register");
-                }}
-                className={`flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all ${
-                  activeTab === "register"
-                    ? "bg-[#0F172A] text-white shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <UserPlus className="w-4 h-4" />
-                Daftar Akun Baru
-              </button>
+
             </div>
 
             {/* Form Inputs */}
@@ -256,7 +241,7 @@ export default function LoginPage() {
           <div className="my-6">
             <div className="bg-white p-2 rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
               <Image
-                src="/image/ilustrasi.png"
+                src="/image/login.png"
                 alt="Gradia"
                 width={800}
                 height={450}

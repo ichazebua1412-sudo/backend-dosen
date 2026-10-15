@@ -2,23 +2,53 @@
 
 import Link from "next/link";
 import React from "react";
+import Image from "next/image";
 import logoImg from "@/public/image/logo.png";
 import { useMemo, useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
-import { LayoutDashboard, Users, UserPlus, FileEdit, FileSpreadsheet, BarChart3, Sparkles, Printer, User, ShieldCheck, BookOpen, Plus, Download, Calendar, Clock, MapPin, CheckCircle2, AlertCircle, Megaphone, ChevronRight, ExternalLink, Layers, FileText,} from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  UserPlus,
+  FileEdit,
+  FileSpreadsheet,
+  BarChart3,
+  Sparkles,
+  Printer,
+  User,
+  ShieldCheck,
+  BookOpen,
+  Plus,
+  Download,
+  Calendar,
+  Clock,
+  MapPin,
+  CheckCircle2,
+  AlertCircle,
+  Megaphone,
+  ChevronRight,
+  ExternalLink,
+  Layers,
+  FileText,
+} from "lucide-react";
 
 export default function LecturerDashboard() {
   return (
     <div className="flex min-h-screen bg-[#F8FAFC] text-slate-800 font-sans text-xs">
-
-      {/*  SIDEBAR */}
+      {/* ================= SIDEBAR ================= */}
       <aside className="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 p-4 sticky top-0 h-screen overflow-y-auto">
         <div>
           {/* Logo Brand */}
-          <div className="flex items-center justify-between mb-6 px-2">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-base shadow-sm">
-                🎓
+          <div className="flex items-center justify-between mb-6 px-1">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden shrink-0">
+                <Image
+                  src={logoImg}
+                  alt="Logo Gradia"
+                  width={36}
+                  height={36}
+                  className="w-full h-full object-contain"
+                />
               </div>
               <div>
                 <h1 className="font-bold text-sm text-slate-900 leading-none">Gradia</h1>
@@ -30,6 +60,7 @@ export default function LecturerDashboard() {
             </span>
           </div>
 
+          
           {/* Navigation Menu */}
           <nav className="space-y-5">
             {/* Group 1: UTAMA */}
@@ -39,21 +70,21 @@ export default function LecturerDashboard() {
               </p>
               <div className="space-y-1">
                 <a
-                  href="#"
+                  href="/Dosen/Dashboard"
                   className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-blue-50 text-blue-600 font-medium transition-all"
                 >
                   <LayoutDashboard className="w-4 h-4" />
                   <span>Dashboard</span>
                 </a>
                 <a
-                  href="#"
+                  href="/Dosen/manajemenkelas"
                   className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
                 >
                   <Layers className="w-4 h-4 text-slate-400" />
                   <span>Manajemen Data Kelas</span>
                 </a>
                 <a
-                  href="#"
+                  href="/Dosen/tambahkelas"
                   className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
                 >
                   <UserPlus className="w-4 h-4 text-slate-400" />
@@ -69,14 +100,14 @@ export default function LecturerDashboard() {
               </p>
               <div className="space-y-1">
                 <a
-                  href="#"
+                  href="/Dosen/inputnilai"
                   className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
                 >
                   <FileEdit className="w-4 h-4 text-slate-400" />
                   <span>Input Rekap Nilai</span>
                 </a>
                 <a
-                  href="#"
+                  href="/Dosen/importnilai"
                   className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
                 >
                   <FileSpreadsheet className="w-4 h-4 text-slate-400" />
@@ -87,19 +118,20 @@ export default function LecturerDashboard() {
 
             {/* Group 3: KECERDASAN BUATAN & LAPORAN */}
             <div>
-              <p className="px-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+              <p 
+              className="px-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
                 KECERDASAN BUATAN & LAPORAN
               </p>
               <div className="space-y-1">
                 <a
-                  href="#"
+                  href="/Dosen/analitikAI"
                   className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
                 >
                   <BarChart3 className="w-4 h-4 text-slate-400" />
                   <span>Analitik & AI Feedback</span>
                 </a>
                 <a
-                  href="#"
+                  href="/Dosen/generateAI"
                   className="flex items-center justify-between px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
                 >
                   <div className="flex items-center gap-2.5">
@@ -111,7 +143,7 @@ export default function LecturerDashboard() {
                   </span>
                 </a>
                 <a
-                  href="#"
+                  href="/Dosen/cetakPDF"
                   className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
                 >
                   <Printer className="w-4 h-4 text-slate-400" />
@@ -127,14 +159,14 @@ export default function LecturerDashboard() {
               </p>
               <div className="space-y-1">
                 <a
-                  href="#"
+                  href="/Dosen/profil"
                   className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
                 >
                   <User className="w-4 h-4 text-slate-400" />
                   <span>Kelola Profil</span>
                 </a>
                 <a
-                  href="#"
+                  href="/Dosen/keamanan"
                   className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
                 >
                   <ShieldCheck className="w-4 h-4 text-slate-400" />
@@ -160,7 +192,7 @@ export default function LecturerDashboard() {
         </div>
       </aside>
 
-      {/* ================= MAIN CONTENT AREA ================= */}
+      {/* MAIN CONTENT AREA */}
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         {/* TOP HEADER */}
         <header className="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between sticky top-0 z-10 shadow-xs">
@@ -193,9 +225,9 @@ export default function LecturerDashboard() {
 
         {/* MAIN DASHBOARD CONTENT */}
         <main className="p-6 space-y-6">
+
           {/* HEADER ACTION BANNER */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-xl font-bold text-slate-900 tracking-tight">
                   Dashboard Dosen
@@ -211,20 +243,33 @@ export default function LecturerDashboard() {
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              <button className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 text-slate-700 font-semibold rounded-lg hover:bg-slate-50 transition-all shadow-2xs">
-                <Download className="w-3.5 h-3.5 text-slate-500" />
-                <span>Export Laporan PDF</span>
-              </button>
-              <button className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all shadow-xs">
-                <Plus className="w-3.5 h-3.5" />
-                <span>Input Nilai Baru</span>
-              </button>
-              <button className="flex items-center gap-1.5 px-3 py-2 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-all shadow-xs">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Generate AI Feedback</span>
-              </button>
-            </div>
-          </div>
+  {/* Tombol Export Laporan PDF */}
+  <Link
+    href="/dashboard/export-laporan"
+    className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 text-slate-700 font-semibold rounded-lg hover:bg-slate-50 transition-all shadow-2xs"
+  >
+    <Download className="w-3.5 h-3.5 text-slate-500" />
+    <span>Export Laporan PDF</span>
+  </Link>
+
+  {/* Tombol Input Nilai Baru */}
+  <Link
+    href="/dashboard/input-nilai"
+    className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all shadow-xs"
+  >
+    <Plus className="w-3.5 h-3.5" />
+    <span>Input Nilai Baru</span>
+  </Link>
+
+  {/* Tombol Generate AI Feedback */}
+  <Link
+    href="/dashboard/ai-feedback"
+    className="flex items-center gap-1.5 px-3 py-2 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-all shadow-xs"
+  >
+    <Sparkles className="w-3.5 h-3.5" />
+    <span>Generate AI Feedback</span>
+  </Link>
+</div>
 
           {/* STATS CARDS GRID */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -613,7 +658,6 @@ export default function LecturerDashboard() {
                 {/* Banner Card */}
                 <div className="relative rounded-xl overflow-hidden bg-slate-900 text-white p-4 min-h-[120px] flex flex-col justify-end">
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent z-10" />
-                  {/* Background Mockup */}
                   <div className="absolute inset-0 bg-slate-800 opacity-60 flex items-center justify-center text-slate-600 font-mono text-[9px]">
                     [ Banner Image Placeholder ]
                   </div>
