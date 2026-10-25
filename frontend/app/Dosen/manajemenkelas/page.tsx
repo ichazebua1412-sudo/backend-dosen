@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useState, useActionState, useOptimistic, type FormEvent, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import React from "react";
@@ -8,6 +8,8 @@ import AuthGuard from "@/components/AuthGuard";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { apiFetch } from "@/lib/api";
+import { createClassAction } from "@/app/actions/class-actions";
+import { classSchema } from "@/lib/schemas";
 import {
   ExternalLink,
   Search,
@@ -137,6 +139,34 @@ export default function DataKelasPage() {
   const [classesData, setClassesData] =
     useState<ClassData[]>([]);
 
+  // Update optimistik (useOptimistic) - Kriteria 3: Daftar bertambah seketika
+  const [optimisticClasses, setOptimisticClass] = useOptimistic(
+    classesData,
+    (currentClasses: ClassData[], newClass: ClassData) => [newClass, ...currentClasses]
+  );
+
+  // Server Action dengan error per field (useActionState) - Kriteria 2
+  const [actionState, formDispatch, isPending] = useActionState(createClassAction, {});
+
+  // Helper untuk membaca pesan error per field yang dikembalikan dari server
+  const getFieldError = (fieldName: string): string | undefined => {
+    if (!actionState?.validationErrors) return undefined;
+    const errs = actionState.validationErrors as any;
+    if (errs[fieldName]?._errors?.length) {
+      return errs[fieldName]._errors[0];
+    }
+    if (Array.isArray(errs[fieldName]) && errs[fieldName].length > 0) {
+      return errs[fieldName][0];
+    }
+    if (errs.fieldErrors?.[fieldName]?.length) {
+      return errs.fieldErrors[fieldName][0];
+    }
+    if (typeof errs[fieldName] === "string") {
+      return errs[fieldName];
+    }
+    return undefined;
+  };
+
   const [isLoading, setIsLoading] =
     useState<boolean>(true);
 
@@ -178,6 +208,24 @@ export default function DataKelasPage() {
     fetchClasses();
   }, []);
 
+  // Efek ketika Server Action berhasil: update data server permanen & tutup modal
+  useEffect(() => {
+    if (actionState?.data?.success && actionState.data.createdClass) {
+      setClassesData((prev) => [actionState.data!.createdClass, ...prev]);
+      setIsModalOpen(false);
+      setFormData({
+        title: "",
+        code: "",
+        sks: "3",
+        prodi: "S1 Informatika",
+        semester: "3",
+        capacity: "30",
+        schedule: "Senin, 10:00",
+        room: "Lab Kom 1",
+      });
+    }
+  }, [actionState]);
+
   const [isModalOpen, setIsModalOpen] =
     useState<boolean>(false);
 
@@ -193,10 +241,10 @@ export default function DataKelasPage() {
     useState<ClassFormData>({
       title: "",
       code: "",
-      sks: "3 SKS Teori/Praktik",
+      sks: "3",
       prodi: "S1 Informatika",
       semester: "3",
-      capacity: "30 Mhs",
+      capacity: "30",
       schedule: "Senin, 10:00",
       room: "Lab Kom 1",
     });
@@ -219,13 +267,13 @@ export default function DataKelasPage() {
   }, [activeTab, searchQuery, sortOption]);
 
   /* =========================================================
-     FILTER DATA KELAS
+     FILTER DATA KELAS (Menggunakan data optimistik)
   ========================================================= */
 
   const filteredClasses = useMemo<ClassData[]>(() => {
     const query = searchQuery.trim().toLowerCase();
 
-    return classesData.filter((item: ClassData) => {
+    return optimisticClasses.filter((item: ClassData) => {
       const matchesSemester =
         activeTab === "Semua" ||
         (activeTab === "Semester 3" &&
@@ -240,7 +288,7 @@ export default function DataKelasPage() {
 
       return matchesSemester && matchesSearch;
     });
-  }, [classesData, activeTab, searchQuery]);
+  }, [optimisticClasses, activeTab, searchQuery]);
 
   /* =========================================================
      SORT DATA KELAS
@@ -298,66 +346,60 @@ export default function DataKelasPage() {
   }, [sortedClasses, safeCurrentPage]);
 
   /* =========================================================
-     STATISTIK DINAMIS
+     STATISTIK DINAMIS (Menggunakan data optimistik)
   ========================================================= */
 
   const totalStudents = useMemo<number>(() => {
-    return classesData.reduce((total, item) => {
+    return optimisticClasses.reduce((total, item) => {
       const capacity =
         parseInt(item.capacity.replace(/\D/g, ""), 10) || 0;
 
       return total + capacity;
     }, 0);
-  }, [classesData]);
+  }, [optimisticClasses]);
 
   /* =========================================================
-     TAMBAH KELAS
+     MUTASI DATA (SERVER ACTION + OPTIMISTIC UPDATE)
+     Kriteria 2: Error per field lewat useActionState
+     Kriteria 3: Update optimistik seketika lewat useOptimistic
+     Kriteria 4: next-safe-action auth client
   ========================================================= */
 
-  const handleAddClass = async (
-    e: FormEvent<HTMLFormElement>
-  ): Promise<void> => {
-    e.preventDefault();
+  const handleFormAction = async (formDataPayload: FormData) => {
+    const rawCapacity = (formDataPayload.get("capacity") as string) || formData.capacity || "40";
+    const cleanCapacity = rawCapacity.replace(/\D/g, "") || "40";
+    formDataPayload.set("capacity", cleanCapacity);
 
-    if (!formData.title.trim() || !formData.code.trim()) {
-      return;
-    }
+    const rawSks = (formDataPayload.get("sks") as string) || formData.sks || "3";
+    const cleanSks = rawSks.replace(/\D/g, "") || "3";
+    formDataPayload.set("sks", cleanSks);
 
-    const capacityNumber =
-      parseInt(formData.capacity.replace(/\D/g, ""), 10) || 40;
-    const sksNumber =
-      parseInt(formData.sks.replace(/\D/g, ""), 10) || 3;
+    // Kriteria 3: Update optimistik - item baru muncul seketika di daftar
+    setOptimisticClass({
+      id: `temp-${Date.now()}`,
+      title: (formDataPayload.get("title") as string) || formData.title,
+      code: ((formDataPayload.get("code") as string) || formData.code).toUpperCase(),
+      sks: `${cleanSks} SKS`,
+      prodi: (formDataPayload.get("prodi") as string) || formData.prodi,
+      semester: Number(formDataPayload.get("semester") || formData.semester) || 3,
+      tag: "Sinkronisasi...",
+      tagType: "warning",
+      academicYear: "2024/2025 Ganjil",
+      capacity: `${cleanCapacity} Mhs`,
+      schedule: (formDataPayload.get("schedule") as string) || formData.schedule || "Senin, 08:00 WIB",
+      room: (formDataPayload.get("room") as string) || formData.room || "Lab Kom 1",
+      progressPercent: 0,
+      progressLabel: "Menyimpan ke Server",
+      progressSubtext: "Optimistic UI Update",
+      note: "Item baru muncul seketika (Optimistik), sedang diganti data dari server.",
+      icon: "code",
+      accentColor: "indigo",
+      actionBtn: "Menyimpan...",
+      btnVariant: "outline",
+    });
 
-    try {
-      await apiFetch("/classes", {
-        method: "POST",
-        body: JSON.stringify({
-          title: formData.title.trim(),
-          code: formData.code.trim().toUpperCase(),
-          sks: sksNumber,
-          prodi: formData.prodi,
-          semester: parseInt(formData.semester, 10) || 1,
-          capacity: capacityNumber,
-          schedule: formData.schedule,
-          room: formData.room,
-        }),
-      });
-
-      setIsModalOpen(false);
-      fetchClasses();
-      setFormData({
-        title: "",
-        code: "",
-        sks: "3 SKS Teori/Praktik",
-        prodi: "S1 Informatika",
-        semester: "3",
-        capacity: "30 Mhs",
-        schedule: "Senin, 10:00",
-        room: "Lab Kom 1",
-      });
-    } catch (err: any) {
-      alert("Gagal menambahkan kelas: " + err.message);
-    }
+    // Kriteria 2 & 4: Jalankan Server Action
+    await formDispatch(formDataPayload);
   };
 
   /* EXPORT RINGKASAN */
@@ -961,24 +1003,27 @@ export default function DataKelasPage() {
 
             </div>
 
-            {/* FORM */}
-
+            {/* FORM MODAL DENGAN SERVER ACTION & VALIDASI PER FIELD */}
             <form
-              onSubmit={handleAddClass}
+              action={handleFormAction}
               className="p-5 space-y-4"
             >
+              {/* SERVER ERROR / AUTH REJECTION BANNER (Kriteria 4) */}
+              {actionState?.serverError && (
+                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs font-semibold flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-600 flex-shrink-0" />
+                  <span>{actionState.serverError}</span>
+                </div>
+              )}
 
-              {/* NAMA */}
-
+              {/* NAMA MATA KULIAH */}
               <div>
-
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Nama Mata Kuliah
+                  Nama Mata Kuliah <span className="text-rose-500">*</span>
                 </label>
-
                 <input
+                  name="title"
                   type="text"
-                  required
                   placeholder="Contoh: Pemrograman Mobile"
                   value={formData.title}
                   onChange={(e) =>
@@ -987,24 +1032,29 @@ export default function DataKelasPage() {
                       title: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                  className={`w-full px-3 py-2 border rounded-xl text-xs font-medium outline-none transition-all ${
+                    getFieldError("title")
+                      ? "border-rose-400 bg-rose-50/20 text-rose-900 focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
+                      : "border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                  }`}
                 />
-
+                {/* Error per field - Kriteria 1 & 2 */}
+                {getFieldError("title") && (
+                  <p className="text-rose-500 text-[11px] font-medium mt-1 flex items-center gap-1">
+                    <span>⚠️</span> {getFieldError("title")}
+                  </p>
+                )}
               </div>
 
-              {/* KODE & SEMESTER */}
-
+              {/* KODE & SKS */}
               <div className="grid grid-cols-2 gap-3">
-
                 <div>
-
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Kode Matkul
+                    Kode Matkul <span className="text-rose-500">*</span>
                   </label>
-
                   <input
+                    name="code"
                     type="text"
-                    required
                     placeholder="Contoh: TIF-4010"
                     value={formData.code}
                     onChange={(e) =>
@@ -1013,18 +1063,60 @@ export default function DataKelasPage() {
                         code: e.target.value,
                       })
                     }
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                    className={`w-full px-3 py-2 border rounded-xl text-xs font-medium outline-none transition-all ${
+                      getFieldError("code")
+                        ? "border-rose-400 bg-rose-50/20 text-rose-900 focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
+                        : "border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    }`}
                   />
-
+                  {getFieldError("code") && (
+                    <p className="text-rose-500 text-[11px] font-medium mt-1 flex items-center gap-1">
+                      <span>⚠️</span> {getFieldError("code")}
+                    </p>
+                  )}
                 </div>
 
                 <div>
-
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Semester
+                    Bobot SKS <span className="text-rose-500">*</span>
                   </label>
-
                   <select
+                    name="sks"
+                    value={formData.sks}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        sks: e.target.value,
+                      })
+                    }
+                    className={`w-full px-3 py-2 border rounded-xl text-xs font-medium outline-none bg-white transition-all ${
+                      getFieldError("sks")
+                        ? "border-rose-400 bg-rose-50/20 text-rose-900 focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
+                        : "border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    }`}
+                  >
+                    <option value="1">1 SKS</option>
+                    <option value="2">2 SKS</option>
+                    <option value="3">3 SKS</option>
+                    <option value="4">4 SKS</option>
+                    <option value="6">6 SKS</option>
+                  </select>
+                  {getFieldError("sks") && (
+                    <p className="text-rose-500 text-[11px] font-medium mt-1 flex items-center gap-1">
+                      <span>⚠️</span> {getFieldError("sks")}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* SEMESTER & KAPASITAS */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Semester <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    name="semester"
                     value={formData.semester}
                     onChange={(e) =>
                       setFormData({
@@ -1032,64 +1124,38 @@ export default function DataKelasPage() {
                         semester: e.target.value,
                       })
                     }
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none bg-white"
+                    className={`w-full px-3 py-2 border rounded-xl text-xs font-medium outline-none bg-white transition-all ${
+                      getFieldError("semester")
+                        ? "border-rose-400 bg-rose-50/20 text-rose-900 focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
+                        : "border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    }`}
                   >
-
-                    <option value="3">
-                      Semester 3
-                    </option>
-
-                    <option value="5">
-                      Semester 5
-                    </option>
-
+                    <option value="1">Semester 1</option>
+                    <option value="2">Semester 2</option>
+                    <option value="3">Semester 3</option>
+                    <option value="4">Semester 4</option>
+                    <option value="5">Semester 5</option>
+                    <option value="6">Semester 6</option>
+                    <option value="7">Semester 7</option>
+                    <option value="8">Semester 8</option>
                   </select>
-
-                </div>
-
-              </div>
-
-              {/* PRODI & KAPASITAS */}
-
-              <div className="grid grid-cols-2 gap-3">
-
-                <div>
-
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Program Studi
-                  </label>
-
-                  <select
-                    value={formData.prodi}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        prodi: e.target.value,
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none bg-white"
-                  >
-
-                    <option value="S1 Informatika">
-                      S1 Informatika
-                    </option>
-
-                    <option value="S1 Sistem Informasi">
-                      S1 Sistem Informasi
-                    </option>
-
-                  </select>
-
+                  {getFieldError("semester") && (
+                    <p className="text-rose-500 text-[11px] font-medium mt-1 flex items-center gap-1">
+                      <span>⚠️</span> {getFieldError("semester")}
+                    </p>
+                  )}
                 </div>
 
                 <div>
-
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Kapasitas
+                    Kapasitas (Mhs) <span className="text-rose-500">*</span>
                   </label>
-
                   <input
-                    type="text"
+                    name="capacity"
+                    type="number"
+                    min="1"
+                    max="200"
+                    placeholder="Contoh: 40"
                     value={formData.capacity}
                     onChange={(e) =>
                       setFormData({
@@ -1097,25 +1163,61 @@ export default function DataKelasPage() {
                         capacity: e.target.value,
                       })
                     }
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                    className={`w-full px-3 py-2 border rounded-xl text-xs font-medium outline-none transition-all ${
+                      getFieldError("capacity")
+                        ? "border-rose-400 bg-rose-50/20 text-rose-900 focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
+                        : "border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    }`}
                   />
-
+                  {getFieldError("capacity") && (
+                    <p className="text-rose-500 text-[11px] font-medium mt-1 flex items-center gap-1">
+                      <span>⚠️</span> {getFieldError("capacity")}
+                    </p>
+                  )}
                 </div>
+              </div>
 
+              {/* PROGRAM STUDI */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Program Studi <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  name="prodi"
+                  value={formData.prodi}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      prodi: e.target.value,
+                    })
+                  }
+                  className={`w-full px-3 py-2 border rounded-xl text-xs font-medium outline-none bg-white transition-all ${
+                    getFieldError("prodi")
+                      ? "border-rose-400 bg-rose-50/20 text-rose-900 focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
+                      : "border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                  }`}
+                >
+                  <option value="S1 Informatika">S1 Informatika</option>
+                  <option value="S1 Sistem Informasi">S1 Sistem Informasi</option>
+                  <option value="D3 Teknik Komputer">D3 Teknik Komputer</option>
+                </select>
+                {getFieldError("prodi") && (
+                  <p className="text-rose-500 text-[11px] font-medium mt-1 flex items-center gap-1">
+                    <span>⚠️</span> {getFieldError("prodi")}
+                  </p>
+                )}
               </div>
 
               {/* JADWAL & RUANG */}
-
               <div className="grid grid-cols-2 gap-3">
-
                 <div>
-
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Jadwal Kuliah
+                    Jadwal Kuliah <span className="text-rose-500">*</span>
                   </label>
-
                   <input
+                    name="schedule"
                     type="text"
+                    placeholder="Contoh: Senin, 08:00 WIB"
                     value={formData.schedule}
                     onChange={(e) =>
                       setFormData({
@@ -1123,19 +1225,27 @@ export default function DataKelasPage() {
                         schedule: e.target.value,
                       })
                     }
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                    className={`w-full px-3 py-2 border rounded-xl text-xs font-medium outline-none transition-all ${
+                      getFieldError("schedule")
+                        ? "border-rose-400 bg-rose-50/20 text-rose-900 focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
+                        : "border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    }`}
                   />
-
+                  {getFieldError("schedule") && (
+                    <p className="text-rose-500 text-[11px] font-medium mt-1 flex items-center gap-1">
+                      <span>⚠️</span> {getFieldError("schedule")}
+                    </p>
+                  )}
                 </div>
 
                 <div>
-
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Ruang OBE
+                    Ruang OBE / Kelas <span className="text-rose-500">*</span>
                   </label>
-
                   <input
+                    name="room"
                     type="text"
+                    placeholder="Contoh: Lab Kom 1"
                     value={formData.room}
                     onChange={(e) =>
                       setFormData({
@@ -1143,22 +1253,25 @@ export default function DataKelasPage() {
                         room: e.target.value,
                       })
                     }
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                    className={`w-full px-3 py-2 border rounded-xl text-xs font-medium outline-none transition-all ${
+                      getFieldError("room")
+                        ? "border-rose-400 bg-rose-50/20 text-rose-900 focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
+                        : "border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    }`}
                   />
-
+                  {getFieldError("room") && (
+                    <p className="text-rose-500 text-[11px] font-medium mt-1 flex items-center gap-1">
+                      <span>⚠️</span> {getFieldError("room")}
+                    </p>
+                  )}
                 </div>
-
               </div>
 
-              {/* BUTTON */}
-
+              {/* BUTTON FOOTER */}
               <div className="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
-
                 <button
                   type="button"
-                  onClick={() =>
-                    setIsModalOpen(false)
-                  }
+                  onClick={() => setIsModalOpen(false)}
                   className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
                 >
                   Batal
@@ -1166,13 +1279,19 @@ export default function DataKelasPage() {
 
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-indigo-200 transition-all"
+                  disabled={isPending}
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white rounded-xl text-xs font-semibold shadow-md shadow-indigo-200 transition-all flex items-center gap-2"
                 >
-                  Simpan Kelas
+                  {isPending ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Menyimpan (Action)...</span>
+                    </>
+                  ) : (
+                    <span>Simpan Kelas</span>
+                  )}
                 </button>
-
               </div>
-
             </form>
 
           </div>

@@ -6,6 +6,7 @@ import AuthGuard from "@/components/AuthGuard";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { apiFetch } from "@/lib/api";
+import { validateClassInput, validateStudentInput } from "@/lib/schemas";
 import {
   ExternalLink,
   Search,
@@ -224,7 +225,19 @@ export default function App() {
   ): void => {
     event.preventDefault();
 
-    if (!newStudent.nim || !newStudent.name) {
+    // Validasi Zod Schema Mahasiswa Bersama
+    const validation = validateStudentInput({
+      nim: newStudent.nim,
+      name: newStudent.name,
+      email: newStudent.email || `${newStudent.nim}@student.ac.id`,
+      prodi: newStudent.prodi,
+      status: newStudent.status,
+    });
+
+    if (!validation.success) {
+      const errMap = validation.error.flatten().fieldErrors;
+      const firstError = Object.values(errMap)[0]?.[0];
+      showToast(`⚠️ Validasi gagal: ${firstError || "Data tidak valid"}`);
       return;
     }
 
@@ -271,24 +284,30 @@ export default function App() {
   };
 
   const handleSaveClassData = async (): Promise<void> => {
-    if (!classForm.courseName || !classForm.courseCode) {
-      showToast("Nama dan kode mata kuliah wajib diisi!");
+    const classPayload = {
+      title: classForm.courseName,
+      code: classForm.courseCode,
+      sks: 3,
+      prodi: "Teknik Informatika",
+      semester: 1,
+      capacity: classForm.maxQuota || 40,
+      schedule: classForm.roomSchedule || "Senin, 08:00 WIB",
+      room: "Lab Komputer",
+    };
+
+    // Validasi Zod Schema Kelas Bersama
+    const validation = validateClassInput(classPayload);
+    if (!validation.success) {
+      const errMap = validation.error.flatten().fieldErrors;
+      const firstError = Object.values(errMap)[0]?.[0];
+      showToast(`⚠️ Validasi gagal: ${firstError || "Data kelas tidak valid"}`);
       return;
     }
 
     try {
       const classRes = await apiFetch("/classes", {
         method: "POST",
-        body: JSON.stringify({
-          title: classForm.courseName,
-          code: classForm.courseCode,
-          sks: 3,
-          prodi: "Teknik Informatika",
-          semester: 1,
-          capacity: classForm.maxQuota || 40,
-          schedule: classForm.roomSchedule || "Senin, 08:00 WIB",
-          room: "Lab Komputer",
-        }),
+        body: JSON.stringify(validation.data),
       });
 
       // Enroll students if any added

@@ -66,6 +66,7 @@ export default function LoginPage() {
 
         localStorage.setItem("gradia_token", res.token);
         localStorage.setItem("gradia_lecturer", JSON.stringify(res.lecturer));
+        document.cookie = `gradia_token=${res.token}; path=/; max-age=604800; SameSite=Lax;`;
         router.push("/Dosen/dashboard");
       } else {
         if (!formData.identifier || !formData.password) {
@@ -84,6 +85,7 @@ export default function LoginPage() {
 
         localStorage.setItem("gradia_token", res.token);
         localStorage.setItem("gradia_lecturer", JSON.stringify(res.lecturer));
+        document.cookie = `gradia_token=${res.token}; path=/; max-age=604800; SameSite=Lax;`;
         router.push("/Dosen/dashboard");
       }
     } catch (err: any) {

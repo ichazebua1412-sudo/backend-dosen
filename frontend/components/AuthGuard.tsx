@@ -12,6 +12,9 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     if (!token) {
       router.replace("/auth/login");
     } else {
+      if (typeof document !== "undefined" && !document.cookie.includes("gradia_token=")) {
+        document.cookie = `gradia_token=${token}; path=/; max-age=604800; SameSite=Lax;`;
+      }
       setIsAuthorized(true);
     }
   }, [router]);
