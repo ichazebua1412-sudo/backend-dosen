@@ -45,54 +45,35 @@ export default function LoginPage() {
     setErrorMsg("");
 
     try {
-      if (activeTab === "register") {
-        if (!formData.name || !formData.nidn || !formData.email || !formData.password) {
-          setErrorMsg("Semua kolom berbintang wajib diisi.");
-          setIsLoading(false);
-          return;
-        }
-
-        const res = await apiFetch("/auth/register", {
-          method: "POST",
-          body: JSON.stringify({
-            name: formData.name,
-            nidn: formData.nidn,
-            email: formData.email,
-            password: formData.password,
-            titlePrefix: formData.titlePrefix,
-            titleSuffix: formData.titleSuffix,
-          }),
-        });
-
-        localStorage.setItem("gradia_token", res.token);
-        localStorage.setItem("gradia_lecturer", JSON.stringify(res.lecturer));
-        document.cookie = `gradia_token=${res.token}; path=/; max-age=604800; SameSite=Lax;`;
-        router.push("/Dosen/dashboard");
-      } else {
-        if (!formData.identifier || !formData.password) {
-          setErrorMsg("NIDN/Email dan password wajib diisi.");
-          setIsLoading(false);
-          return;
-        }
-
-        const res = await apiFetch("/auth/login", {
-          method: "POST",
-          body: JSON.stringify({
-            identifier: formData.identifier,
-            password: formData.password,
-          }),
-        });
-
-        localStorage.setItem("gradia_token", res.token);
-        localStorage.setItem("gradia_lecturer", JSON.stringify(res.lecturer));
-        document.cookie = `gradia_token=${res.token}; path=/; max-age=604800; SameSite=Lax;`;
-        router.push("/Dosen/dashboard");
+      if (!formData.identifier || !formData.password) {
+        setErrorMsg("NIDN/Email dan kata sandi wajib diisi.");
+        setIsLoading(false);
+        return;
       }
+
+      console.log("Mengirim request login dosen:", formData.identifier);
+
+      const res = await apiFetch("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({
+          identifier: formData.identifier,
+          password: formData.password,
+        }),
+      });
+
+      console.log("Login dosen berhasil:", res);
+
+      localStorage.setItem("gradia_token", res.token);
+      localStorage.setItem("gradia_lecturer", JSON.stringify(res.lecturer));
+      document.cookie = `gradia_token=${res.token}; path=/; max-age=604800; SameSite=Lax;`;
+      router.push("/Dosen/dashboard");
     } catch (err: any) {
-      setErrorMsg(err.message || "Gagal memproses permintaan Anda.");
+      console.error("Gagal login dosen:", err.message);
+      setErrorMsg(err.message || "Gagal memproses permintaan login.");
     } finally {
       setIsLoading(false);
     }
+
   };
 
   return (
@@ -134,36 +115,7 @@ export default function LoginPage() {
               </p>
             </div>
 
-            {/* Tab Switcher */}
-            <div className="bg-[#F1F5F9] p-1.5 rounded-2xl flex gap-1 mb-6">
-              {/* LOGIN */}
-              <button
-                type="button"
-                onClick={() => { setActiveTab("login"); setErrorMsg(""); }}
-                className={`flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all ${
-                  activeTab === "login"
-                    ? "bg-[#0F172A] text-white shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <UserCheck className="w-4 h-4" />
-                Masuk / Login Dosen
-              </button>
 
-              {/* REGISTER */}
-              <button
-                type="button"
-                onClick={() => { setActiveTab("register"); setErrorMsg(""); }}
-                className={`flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all ${
-                  activeTab === "register"
-                    ? "bg-[#0F172A] text-white shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <UserPlus className="w-4 h-4" />
-                Daftar Akun Baru
-              </button>
-            </div>
 
             {/* Form Inputs */}
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -174,86 +126,33 @@ export default function LoginPage() {
                 </div>
               )}
 
-              {activeTab === "register" ? (
-                <>
-                  {/* Nama Lengkap */}
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Nama Lengkap *
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      placeholder="Contoh: Hendra"
-                      className="w-full px-4 py-2.5 bg-[#F8FAFC] border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:bg-white transition-all"
-                      required
-                    />
+              {/* NIDN / Email Kampus Login */}
+              <div>
+                <label
+                  htmlFor="identifier"
+                  className="block text-xs font-semibold text-slate-700 mb-1.5"
+                >
+                  NIDN / Email Kampus *
+                </label>
+
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <Mail className="w-5 h-5" />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    {/* NIDN */}
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        NIDN *
-                      </label>
-                      <input
-                        type="text"
-                        name="nidn"
-                        value={formData.nidn}
-                        onChange={handleChange}
-                        placeholder="Contoh: 0412068201"
-                        className="w-full px-4 py-2.5 bg-[#F8FAFC] border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:bg-white transition-all"
-                        required
-                      />
-                    </div>
-
-                    {/* Email Kampus */}
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        Email Kampus *
-                      </label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        placeholder="hendra@kampus.ac.id"
-                        className="w-full px-4 py-2.5 bg-[#F8FAFC] border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:bg-white transition-all"
-                        required
-                      />
-                    </div>
-                  </div>
-                </>
-              ) : (
-                /* NIDN / Email Kampus Login */
-                <div>
-                  <label
-                    htmlFor="identifier"
-                    className="block text-xs font-semibold text-slate-700 mb-1.5"
-                  >
-                    NIDN / Email Kampus
-                  </label>
-
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                      <Mail className="w-5 h-5" />
-                    </div>
-
-                    <input
-                      id="identifier"
-                      type="text"
-                      name="identifier"
-                      value={formData.identifier}
-                      onChange={handleChange}
-                      placeholder="Masukkan NIDN atau Email Anda"
-                      className="w-full pl-10 pr-4 py-3 bg-[#F8FAFC] border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:bg-white transition-all"
-                      required
-                    />
-                  </div>
+                  <input
+                    id="identifier"
+                    type="text"
+                    name="identifier"
+                    value={formData.identifier}
+                    onChange={handleChange}
+                    placeholder="Masukkan NIDN atau Email Anda"
+                    className="w-full pl-10 pr-4 py-3 bg-[#F8FAFC] border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:bg-white transition-all"
+                    required
+                  />
                 </div>
-              )}
+              </div>
+
 
               {/* Password */}
               <div>
@@ -307,13 +206,7 @@ export default function LoginPage() {
                   className="w-full py-3.5 bg-[#4F46E5] hover:bg-[#4338CA] disabled:bg-indigo-300 text-white font-semibold rounded-xl text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all"
                 >
                   {isLoading ? (
-                    <span>Memproses...</span>
-                  ) : activeTab === "register" ? (
-                    <>
-                      <UserPlus className="w-4 h-4" />
-                      Daftar Akun Dosen Baru
-                      <ArrowRight className="w-4 h-4" />
-                    </>
+                    <span>Memproses Autentikasi...</span>
                   ) : (
                     <>
                       <ArrowRight className="w-4 h-4" />
@@ -323,6 +216,7 @@ export default function LoginPage() {
                   )}
                 </button>
               </div>
+
             </form>
           </div>
 
